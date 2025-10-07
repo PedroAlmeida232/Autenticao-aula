@@ -32,6 +32,27 @@ app.listen(PORT, (req,res)=>{
 
 const salvarUsuarios = (users)=>{
     fs.writeFileSync(localUsuarios,JSON.stringify(users,null,2))
-        
-    
+           
 }
+
+//Rota register 
+
+app.post("/register", async(req,res)=>{
+    // Desestruturar corpo da requisicao colocando os parametros que serao ultilizados no registro
+    const {email, senha} = req.body
+    if (!email || !senha){
+        res.status(400).json({message:"Preencha todos os campos"})
+    }
+
+    const users = consultarUsuario()
+    if(users.find(user=>user.email == email)){
+        return res.status(400).json({message:"email ja cadastrado"})
+    }
+
+    const hashsenha = await bcrypt.hash(senha,10)
+    const novoUsuario = {id:Date.now,email, senha:hashsenha}
+    users.push(novoUsuario)
+    salvarUsuarios(users)
+
+    res.status(201).json({message:"Usuario registrado com sucesso"})
+})
